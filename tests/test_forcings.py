@@ -44,23 +44,3 @@ def test_number_of_inconsistent_forcing_admission():
     Id = CB.determine_inconsistent_forcings(inds, forcings)
     n_inconst_forcings = CB.get_n_inconst_forcings(Id)
     assert n_inconst_forcings == 0
-
-
-def test_number_of_inconsistent_forcing_churn():
-    CB = CaseBase(pd.read_csv("data/churn500.csv"), auth_method="relative")
-    inds = range(len(CB))
-    forcings = CB.get_forcings(inds)
-    assert len(forcings) == 3103
-    Id = CB.determine_inconsistent_forcings(inds, forcings)
-    n_inconst_forcings = CB.get_n_inconst_forcings(Id)
-    assert n_inconst_forcings == 0
-
-
-def test_number_of_inconsistent_forcing_mushroom():
-    CB = CaseBase(pd.read_csv("data/mushroom500.csv"), auth_method="relative")
-    inds = range(len(CB))
-    forcings = CB.get_forcings(inds)
-    assert len(forcings) == 2507
-    Id = CB.determine_inconsistent_forcings(inds, forcings)
-    n_inconst_forcings = CB.get_n_inconst_forcings(Id)
-    assert n_inconst_forcings == 0

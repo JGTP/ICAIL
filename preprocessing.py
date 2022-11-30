@@ -23,7 +23,7 @@ def get_data(dataset_name):
 # url: https://www.kaggle.com/datasets/mohansacharya/graduate-admissions
 def load_admission():
     raw_path = "data/raw_data/Admission_Predict_Ver1.1.csv"
-    prepared_path = "data/prepared_data/admission.csv"
+    prepared_path = "data//admission.csv"
     # Ignored feature(s): Serial No.
     feature_set = [
         "GRE Score",
@@ -50,7 +50,7 @@ def load_admission():
 # url: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 def load_churn():
     raw_path = "data/raw_data/WA_Fn-UseC_-Telco-Customer-Churn.csv"
-    prepared_path = "data/prepared_data/churn.csv"
+    prepared_path = "data//churn.csv"
     # Ignored feature(s): customerID
     feature_set = [
         "gender",
@@ -91,7 +91,7 @@ def load_churn():
 # url: https://www.kaggle.com/datasets/rupakroy/online-payments-fraud-detection-dataset
 def load_fraud():
     raw_path = "data/raw_data/PS_20174392719_1491204439457_log.csv"
-    prepared_path = "data/prepared_data/fraud.csv"
+    prepared_path = "data//fraud.csv"
     # Ignored feature(s): nameOrig, nameDest, isFlaggedFraud
     feature_set = [
         "step",
@@ -116,7 +116,7 @@ def load_fraud():
 # url: https://github.com/propublica/compas-analysis
 def load_COMPAS():
     raw_path = "data/raw_data/compas-scores.csv"
-    prepared_path = "data/prepared_data/COMPAS.csv"
+    prepared_path = "data//COMPAS.csv"
     # Ignored feature(s):
     #     id,
     #     name,
