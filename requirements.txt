@@ -1,0 +1,8 @@
+black
+numpy
+pandas
+pytest
+scikit-learn
+tabulate
+termcolor
+tqdm
