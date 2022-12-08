@@ -1,5 +1,3 @@
-from unittest import result
-
 import numpy as np
 from tqdm import tqdm
 
@@ -47,7 +45,7 @@ def get_best_precedents(f, CB):
     for c in comparisons:
         c["trivial"], c["requires_empty"] = determine_trivial_or_requires_empty(c)
         if c["name"] not in bested:
-            if CB.auth_method is None:
+            if CB.auth_method is "default":
                 bested = inner_loop_naive(comparisons, c, bested)
             else:
                 bested = inner_loop_alpha(comparisons, c, bested)
@@ -64,7 +62,7 @@ def determine_trivial_or_requires_empty(c):
 
 
 def get_comparisons(f, CB):
-    if CB.auth_method is None:
+    if CB.auth_method is "default":
         return [
             {
                 "name": c.name,
@@ -89,6 +87,7 @@ def get_comparisons(f, CB):
 
 def inner_loop_naive(comparisons, c, bested):
     for oc in comparisons:
+        # Dit vertraagt de boel natuurlijk enorm met een grote CB!
         if c["rel_differences"] > oc["rel_differences"]:
             bested.add(c["name"])
     return bested

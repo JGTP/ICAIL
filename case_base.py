@@ -140,7 +140,7 @@ class CaseBase(list):
         manords={},
         verb=False,
         method="pearson",
-        auth_method=None,
+        auth_method="default",
         size=-1,
     ):
         """
@@ -285,7 +285,7 @@ class CaseBase(list):
         self.calculate_alphas()
 
     def calculate_alphas(self):
-        if self.auth_method is not None:
+        if self.auth_method is not "Default":
             for c in self:
                 if self.auth_method == "relative":
                     c.set_alpha(relative_authoritativeness(c, self))
@@ -354,7 +354,7 @@ class CaseBase(list):
         return consistent_subset
 
     def get_forcings(self, inds, make_consistent=False):
-        if self.auth_method is None or make_consistent:
+        if self.auth_method is "default" or make_consistent:
             return {(i, j) for i in tqdm(inds) for j in inds if self[i] <= self[j]}
         else:
             return {
@@ -366,7 +366,7 @@ class CaseBase(list):
 
     def determine_inconsistent_forcings(self, inds, F):
         # Separate from F the forcings that lead to inconsistency.
-        if self.auth_method is None:
+        if self.auth_method is "default":
             I = {(i, j) for (i, j) in F if self[i].s != self[j].s}
         else:
             I = {

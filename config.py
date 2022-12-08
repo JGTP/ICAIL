@@ -3,7 +3,7 @@ config_dict = {
         "path": "data/admission.csv",
         "Full dataset": {
             "auth_methods": {
-                None: {},
+                "default": {},
                 "relative": {},
                 "absolute": {},
                 "product": {},
@@ -23,7 +23,7 @@ config_dict = {
         "path": "data/churn.csv",
         "Full dataset": {
             "auth_methods": {
-                None: {},
+                "default": {},
                 "relative": {},
                 "absolute": {},
                 "product": {},
@@ -39,11 +39,11 @@ config_dict = {
             },
         },
     },
-    "Churn": {
+    "Fraud": {
         "path": "data/fraud.csv",
         "Full dataset": {
             "auth_methods": {
-                None: {},
+                "default": {},
                 "relative": {},
                 "absolute": {},
                 "product": {},
@@ -59,11 +59,11 @@ config_dict = {
             },
         },
     },
-    "Churn": {
+    "COMPAS": {
         "path": "data/COMPAS.csv",
         "Full dataset": {
             "auth_methods": {
-                None: {},
+                "default": {},
                 "relative": {},
                 "absolute": {},
                 "product": {},

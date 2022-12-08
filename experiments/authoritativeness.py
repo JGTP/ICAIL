@@ -36,7 +36,7 @@ def experiment(exp_dict):
     return exp_dict
 
 
-def evaluate_dataset(path, auth_method, make_consistent, m):
+def evaluate_dataset(path, auth_method, make_consistent, m, max_size=8000):
     results = {}
     print(f"\nEvaluating for auth_method={auth_method}...")
     df = pd.read_csv(path)
@@ -51,7 +51,10 @@ def evaluate_dataset(path, auth_method, make_consistent, m):
         print(
             f"Removed {initial_size - reduced_size} ({100*(initial_size - reduced_size)/initial_size} %)."
         )
-    results = get_precedent_distribution(CB)
+    if len(CB) <= max_size:
+        results = get_precedent_distribution(CB)
+    else:
+        print("Skipping mu due to large CB.")
     inds = range(len(CB))
     forcings = CB.get_forcings(inds, make_consistent)
     Id = CB.determine_inconsistent_forcings(inds, forcings)
