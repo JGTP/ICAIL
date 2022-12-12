@@ -36,10 +36,13 @@ def experiment(exp_dict):
     return exp_dict
 
 
-def evaluate_dataset(path, auth_method, make_consistent, m, max_size=8000):
+def evaluate_dataset(
+    path, auth_method, make_consistent=False, m="pearson", max_size=8000, df=None
+):
     results = {}
     print(f"\nEvaluating for auth_method={auth_method}...")
-    df = pd.read_csv(path)
+    if df is None:
+        df = pd.read_csv(path)
     # df = df.head(10)
     CB = CaseBase(df, verb=True, method=m, auth_method=auth_method)
     if make_consistent:

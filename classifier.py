@@ -10,7 +10,7 @@ def kfold_random_forest(X, y):
     )
     clf = _grid_search_random_forest(train_X, train_y)
     metrics = _get_metrics(clf, test_X, test_y)
-    return clf, metrics
+    return clf.best_estimator_, metrics
 
 
 def _grid_search_random_forest(train_X, train_y):
