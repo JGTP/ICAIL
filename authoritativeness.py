@@ -6,7 +6,7 @@ def alpha(case, CB, method):
     elif method == "product":
         return product_authoritativeness(case, CB)
     elif method.startswith("harmonic"):
-        beta=float(self.auth_method.split("_")[1])
+        beta = float(method.split("_")[1])
         return harmonic_authoritativeness(case, CB, beta)
     else:
         raise ValueError("Unknown method for authoritativeness.")
@@ -50,4 +50,4 @@ def product_authoritativeness(case, CB):
 def harmonic_authoritativeness(case, CB, beta):
     rels = relative_authoritativeness(case, CB)
     abss = absolute_authoritativeness(case, CB)
-    return (1 + beta**2) * (rels * abss) / (rels + abss)
+    return (1 + beta**2) * (rels * abss) / ((beta**2 * rels) + abss)
