@@ -354,7 +354,7 @@ class CaseBase(list):
         return consistent_subset
 
     def get_forcings(self, inds, make_consistent=False):
-        if self.auth_method is "default" or make_consistent:
+        if self.auth_method == "default" or make_consistent:
             return {(i, j) for i in tqdm(inds) for j in inds if self[i] <= self[j]}
         else:
             return {
@@ -366,7 +366,7 @@ class CaseBase(list):
 
     def determine_inconsistent_forcings(self, inds, F):
         # Separate from F the forcings that lead to inconsistency.
-        if self.auth_method is "default":
+        if self.auth_method == "default":
             I = {(i, j) for (i, j) in F if self[i].s != self[j].s}
         else:
             I = {

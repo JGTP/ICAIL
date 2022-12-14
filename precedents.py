@@ -45,7 +45,7 @@ def get_best_precedents(f, CB):
     for c in comparisons:
         c["trivial"], c["requires_empty"] = determine_trivial_or_requires_empty(c)
         if c["name"] not in bested:
-            if CB.auth_method is "default":
+            if CB.auth_method == "default":
                 bested = inner_loop_naive(comparisons, c, bested)
             else:
                 bested = inner_loop_alpha(comparisons, c, bested)
@@ -62,7 +62,7 @@ def determine_trivial_or_requires_empty(c):
 
 
 def get_comparisons(f, CB):
-    if CB.auth_method is "default":
+    if CB.auth_method == "default":
         return [
             {
                 "name": c.name,
