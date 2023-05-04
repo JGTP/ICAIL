@@ -95,6 +95,7 @@ def inner_loop_naive(comparisons, c, bested):
 
 def inner_loop_alpha(comparisons, c, bested):
     for oc in comparisons:
+        # TODO: consider an alternative definition of best precedent where you'd have to nest these conditions.
         if c["rel_differences"] > oc["rel_differences"] and c["alpha"] <= oc["alpha"]:
             bested.add(c["name"])
     return bested
