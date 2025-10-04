@@ -3,9 +3,9 @@ config_dict = {
         "path": "data/admission.csv",
         "Full dataset": {
             "auth_methods": {
-                "default": {},
-                "relative": {},
-                "absolute": {},
+                # "default": {},
+                # "relative": {},
+                # "absolute": {},
                 "product": {},
                 "harmonic_1.0": {},
             },

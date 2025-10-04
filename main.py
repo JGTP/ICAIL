@@ -19,15 +19,14 @@ def output_local(name, latex, df):
 
     if not os.path.exists("results"):
         os.makedirs("results")
-    if len(latex) > 50:
-        with open(f"results/{name}.txt", "w") as f:
-            print(f"Writing results for {name}.")
-            f.write(latex)
+    with open(f"results/{name}.txt", "w") as f:
+        print(f"Writing results for {name}.")
+        f.write(latex)
     if len(df) > 2:
         df.to_csv(f"results/{name}.csv", sep=";")
 
 
-def evaluate_metrics(exp_dict, local=True):
+def evaluate_metrics(exp_dict):
     for name in exp_dict:
         exp_dict = authoritativeness.experiment(exp_dict)
         df_results = pd.DataFrame()
@@ -37,29 +36,18 @@ def evaluate_metrics(exp_dict, local=True):
             latex_results += "&"
             mu = set["auth_methods"][auth_method].get("mean")
             Ninc = set["auth_methods"][auth_method]["Inconsistent forcings"]
-            # std = set["auth_methods"][auth_method]["std"]
-            # trivial = set["auth_methods"][auth_method]["trivial"]
-            # none = set["auth_methods"][auth_method]["default"]
-            # some = set["auth_methods"][auth_method]["some"]
-            # all = set["auth_methods"][auth_method]["all"]
-            if not auth_method.startswith("harmonic"):
-                latex_cell = generate_table_cell(mu, Ninc)
-                latex_results += latex_cell
-            else:
+            latex_cell = generate_table_cell(mu, Ninc)
+            latex_results += latex_cell
+            if auth_method.startswith("harmonic"):
                 beta = float(auth_method.split("_")[1])
                 data = {"beta": [beta], "mu": [mu], "Ninc": [Ninc]}
                 df_results = df_results.append(pd.DataFrame(data).set_index("beta"))
         latex_results += " \\\\\cline{2-5}"
-        if local:
-            output_local(name, latex_results, df_results)
-        # else:
-        # from AAP import kubernetes_s3
-        # kubernetes_s3(name, results)
+        output_local(name, latex_results, df_results)
 
 
 def Q_evaluation(name):
     labelled_data = get_data(name)
-    # labelled_data = labelled_data.head(1000)
     Q_total, metrics, CB_results = get_Q_with_preds(labelled_data)
     df_results = grow_Q(Q_total.head(1000))
     print("Found classifier with the following performance metrics: ", metrics)
@@ -94,4 +82,4 @@ def get_Q_with_preds(data):
 
 if __name__ == "__main__":
     # Q_evaluation("admission")
-    evaluate_metrics(config_dict, local=True)
+    evaluate_metrics(config_dict)
