@@ -93,5 +93,5 @@ def get_Q_with_preds(data):
 
 
 if __name__ == "__main__":
-    Q_evaluation("admission")
-    # evaluate_metrics(config_dict, local=True)
+    # Q_evaluation("admission")
+    evaluate_metrics(config_dict, local=True)

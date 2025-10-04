@@ -6,7 +6,7 @@ results/
 *.pyc
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*/__pycache__/*
 *.py[cod]
 *$py.class
 
@@ -134,4 +134,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-experiments/__pycache__/authoritativeness.cpython-310.pyc
+
+
