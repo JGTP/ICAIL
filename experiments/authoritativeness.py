@@ -43,8 +43,8 @@ def evaluate_dataset(
     print(f"\nEvaluating for auth_method={auth_method}...")
     if df is None:
         df = pd.read_csv(path)
-    # df = df.head(10)
     CB = CaseBase(df, verb=True, method=m, auth_method=auth_method)
+
     if make_consistent:
         initial_size = len(CB)
         print(f"Initial size: {initial_size}.")
@@ -54,12 +54,19 @@ def evaluate_dataset(
         print(
             f"Removed {initial_size - reduced_size} ({100*(initial_size - reduced_size)/initial_size} %)."
         )
+
     if len(CB) <= max_size:
         results = get_precedent_distribution(CB)
     else:
         print("Skipping mu due to large CB.")
+
     inds = range(len(CB))
     forcings = CB.get_forcings(inds, make_consistent)
     Id = CB.determine_inconsistent_forcings(inds, forcings)
     results["Inconsistent forcings"] = CB.get_n_inconst_forcings(Id)
+
+    # Calculate N_del
+    inconsistent_indices = CB.determine_removals(inds, Id)
+    results["N_del"] = len(inconsistent_indices)
+
     return results

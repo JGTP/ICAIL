@@ -1,14 +1,26 @@
 config_dict = {
-    "Admission": {
+    "admission": {
         "path": "data/admission.csv",
         "Full dataset": {
             "auth_methods": {
-                # "default": {},
-                # "relative": {},
-                # "absolute": {},
+                "default": {},
+                "relative": {},
+                "absolute": {},
                 "product": {},
                 "harmonic_1.0": {},
             },
         },
     },
+    # "churn": {
+    #     "path": "data/churn.csv",
+    #     "Full dataset": {
+    #         "auth_methods": {
+    #             "default": {},
+    #             "relative": {},
+    #             # "absolute": {},
+    #             # "product": {},
+    #             # "harmonic_1.0": {},
+    #         },
+    #     },
+    # },
 }

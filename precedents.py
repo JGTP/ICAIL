@@ -11,12 +11,26 @@ def determine_distribution(n_precedents):
 
 def get_precedent_distribution(CB):
     n_precedents = []
+    n_precedents_nontrivial = []  # Add this
     results = {"all": 0, "some": 0, "none": 0, "trivial": 0}
     for case in tqdm(CB):
         best_precedents = get_best_precedents(case, CB)
         n_precedents.append(len(best_precedents))
+
+        # Track non-trivial cases separately
+        if not has_trivial_winning_strategy(best_precedents):
+            n_precedents_nontrivial.append(len(best_precedents))
+
         results = determine_strategy_counts(results, best_precedents)
+
     results["mean"], results["std"] = determine_distribution(n_precedents)
+
+    # Calculate mean for non-trivial cases
+    if n_precedents_nontrivial:
+        results["mean_nontrivial"], _ = determine_distribution(n_precedents_nontrivial)
+    else:
+        results["mean_nontrivial"] = None
+
     return results
 
 

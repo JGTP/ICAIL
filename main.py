@@ -7,11 +7,12 @@ from experiments import authoritativeness
 from preprocessing import get_data
 
 
-def generate_table_cell(mean, n_inconsistent_forcings):
+def generate_table_cell(mean, mean_nontrivial, n_inconsistent_forcings, n_del):
     if mean is None:
         return
     mean = round(mean, 2)
-    return f"\multicolumn{{1}}{{l|}}{{\\begin{{tabular}}[c]{{@{{}}l@{{}}}}$\mu={mean}$\\\\ $N_{{inc}}={n_inconsistent_forcings}$\end{{tabular}}}}"
+    mean_nt = round(mean_nontrivial, 2) if mean_nontrivial is not None else "N/A"
+    return f"\\multicolumn{{1}}{{l|}}{{\\begin{{tabular}}[c]{{@{{}}l@{{}}}}$\\mu={mean}$\\\\ $\\mu_n={mean_nt}$\\\\ $N_{{inc}}={n_inconsistent_forcings}$\\\\ $N_{{del}}={n_del}$\\end{{tabular}}}}"
 
 
 def output_local(name, latex, df):
@@ -30,19 +31,27 @@ def evaluate_metrics(exp_dict):
     for name in exp_dict:
         exp_dict = authoritativeness.experiment(exp_dict)
         df_results = pd.DataFrame()
-        latex_results = f"\multicolumn{{1}}{{l|}}{{{name}}} "
+        latex_results = f"\\multicolumn{{1}}{{l|}}{{{name}}} "
         set = exp_dict[name].get("Full dataset")
         for auth_method in set["auth_methods"]:
             latex_results += "&"
             mu = set["auth_methods"][auth_method].get("mean")
+            mu_n = set["auth_methods"][auth_method].get("mean_nontrivial")
             Ninc = set["auth_methods"][auth_method]["Inconsistent forcings"]
-            latex_cell = generate_table_cell(mu, Ninc)
+            Ndel = set["auth_methods"][auth_method].get("N_del", 0)
+            latex_cell = generate_table_cell(mu, mu_n, Ninc, Ndel)
             latex_results += latex_cell
             if auth_method.startswith("harmonic"):
                 beta = float(auth_method.split("_")[1])
-                data = {"beta": [beta], "mu": [mu], "Ninc": [Ninc]}
+                data = {
+                    "beta": [beta],
+                    "mu": [mu],
+                    "mu_n": [mu_n],
+                    "Ninc": [Ninc],
+                    "Ndel": [Ndel],
+                }
                 df_results = df_results.append(pd.DataFrame(data).set_index("beta"))
-        latex_results += " \\\\\cline{2-5}"
+        latex_results += " \\\\\\cline{2-5}"
         output_local(name, latex_results, df_results)
 
 
