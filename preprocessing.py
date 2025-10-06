@@ -11,20 +11,19 @@ def get_data(dataset_name):
         df = load_churn()
     elif dataset_name == "fraud":
         df = load_fraud()
-    # elif dataset_name == "SCOTUS":
-    #     df = load_SCOTUS()
     elif dataset_name == "COMPAS":
         df = load_COMPAS()
+    elif dataset_name == "GTD":
+        df = load_GTD()
     else:
         raise ValueError("Unknown dataset")
     return df
 
 
-# url: https://www.kaggle.com/datasets/mohansacharya/graduate-admissions
 def load_admission():
     raw_path = "data/raw_data/Admission_Predict_Ver1.1.csv"
-    prepared_path = "data//admission.csv"
-    # Ignored feature(s): Serial No.
+    prepared_path = "data/admission.csv"
+
     feature_set = [
         "GRE Score",
         "TOEFL Score",
@@ -47,11 +46,10 @@ def load_admission():
     return df
 
 
-# url: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 def load_churn():
     raw_path = "data/raw_data/WA_Fn-UseC_-Telco-Customer-Churn.csv"
-    prepared_path = "data//churn.csv"
-    # Ignored feature(s): customerID
+    prepared_path = "data/churn.csv"
+
     feature_set = [
         "gender",
         "SeniorCitizen",
@@ -88,11 +86,10 @@ def load_churn():
     return df
 
 
-# url: https://www.kaggle.com/datasets/rupakroy/online-payments-fraud-detection-dataset
 def load_fraud():
     raw_path = "data/raw_data/PS_20174392719_1491204439457_log.csv"
-    prepared_path = "data//fraud.csv"
-    # Ignored feature(s): nameOrig, nameDest, isFlaggedFraud
+    prepared_path = "data/fraud.csv"
+
     feature_set = [
         "step",
         "type",
@@ -113,47 +110,10 @@ def load_fraud():
     return df
 
 
-# url: https://github.com/propublica/compas-analysis
 def load_COMPAS():
     raw_path = "data/raw_data/compas-scores.csv"
-    prepared_path = "data//COMPAS.csv"
-    # Ignored feature(s):
-    #     id,
-    #     name,
-    #     first,
-    #     last,
-    #     compas_screening_date,
-    #     dob,
-    #     age_cat,
-    #     num_r_cases,
-    #     decile_score,
-    #     days_b_screening_arrest,
-    #     c_case_number,
-    #     c_offense_date,
-    #     c_arrest_date,
-    #     c_days_from_compas,
-    #     c_charge_desc,
-    #     r_case_number,
-    #     r_charge_degree,
-    #     r_days_from_arrest,
-    #     r_offense_date,
-    #     r_charge_desc,
-    #     r_jail_in,
-    #     r_jail_out,
-    #     is_violent_recid,
-    #     num_vr_cases,
-    #     vr_case_number,
-    #     vr_charge_degree,
-    #     vr_offense_date,
-    #     vr_charge_desc,
-    #     v_type_of_assessment,
-    #     v_decile_score,
-    #     v_score_text,
-    #     v_screening_date,
-    #     type_of_assessment,
-    #     decile_score,
-    #     score_text,
-    #     screening_date,
+    prepared_path = "data/COMPAS.csv"
+
     feature_set = [
         "sex",
         "age",
@@ -182,6 +142,52 @@ def load_COMPAS():
         df.drop(columns={"c_jail_in", "c_jail_out"}, inplace=True)
         df.rename(columns={"is_recid": "Label"}, inplace=True)
         df.dropna(subset=["Label"], inplace=True)
+        df["Label"] = df["Label"].astype(int)
+        df.to_csv(prepared_path, index=False)
+    else:
+        df = pd.read_csv(prepared_path)
+    return df
+
+
+def load_GTD():
+    """Load and preprocess Global Terrorism Database (GTD).
+    Features:
+        - Numerical: nkill, nwound, nhostkid (casualties and hostages)
+        - Categorical: attacktype1, weaptype1, targtype1, ransom
+    Target: suicide (binary - whether attack was a suicide attack)
+
+    Note: Only includes incidents from 1998 onwards (iyear > 1997)
+    """
+    raw_path = "data/raw_data/gtd.xlsx"
+    prepared_path = "data/GTD.csv"
+
+    numerical_features = ["nkill", "nwound", "nhostkid"]
+    categorical_features = ["attacktype1", "weaptype1", "targtype1", "ransom"]
+    target = "suicide"
+    feature_set = numerical_features + categorical_features + [target, "iyear"]
+
+    if not os.path.exists(prepared_path):
+        df = pd.read_excel(raw_path)
+        df = df[feature_set]
+        df = df[df["iyear"] > 1997]
+        df.drop(columns=["iyear"], inplace=True)
+        df["nhostkid"] = df["nhostkid"].replace(-99, np.nan)
+        df["ransom"] = df["ransom"].replace(-9, np.nan)
+        df.dropna(subset=[target], inplace=True)
+        df = df.sample(n=min(6000, len(df)), random_state=42)
+
+        for cat_col in categorical_features:
+            if cat_col in df.columns:
+
+                df[cat_col] = df[cat_col].astype(str)
+                dummies = pd.get_dummies(df[cat_col], prefix=cat_col, drop_first=True)
+                df = pd.concat([df, dummies], axis=1)
+                df.drop(columns=[cat_col], inplace=True)
+
+        for num_col in numerical_features:
+            if num_col in df.columns:
+                df[num_col].fillna(df[num_col].median(), inplace=True)
+        df.rename(columns={target: "Label"}, inplace=True)
         df["Label"] = df["Label"].astype(int)
         df.to_csv(prepared_path, index=False)
     else:
