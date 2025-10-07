@@ -36,9 +36,7 @@ def experiment(exp_dict):
     return exp_dict
 
 
-def evaluate_dataset(
-    path, auth_method, make_consistent=False, m="pearson", max_size=8000, df=None
-):
+def evaluate_dataset(path, auth_method, make_consistent=False, m="pearson", df=None):
     results = {}
     print(f"\nEvaluating for auth_method={auth_method}...")
     if df is None:
@@ -55,10 +53,7 @@ def evaluate_dataset(
             f"Removed {initial_size - reduced_size} ({100*(initial_size - reduced_size)/initial_size} %)."
         )
 
-    if len(CB) <= max_size:
-        results = get_precedent_distribution(CB)
-    else:
-        print("Skipping mu due to large CB.")
+    results = get_precedent_distribution(CB)
 
     inds = range(len(CB))
     forcings = CB.get_forcings(inds, make_consistent)
@@ -70,3 +65,37 @@ def evaluate_dataset(
     results["N_del"] = len(inconsistent_indices)
 
     return results
+
+
+def experiment_single_dataset(name, dataset_config):
+    """Process a single dataset and return results."""
+    m = "pearson"
+    path = dataset_config["path"]
+
+    full_experiments = dataset_config.get("Full dataset")
+    if full_experiments:
+        make_consistent = False
+        auth_methods = full_experiments["auth_methods"]
+        print("\n===========================================")
+        print(
+            f"Analysing {name} using the {m} method with make_consistent={make_consistent}."
+        )
+        for auth_method in auth_methods:
+            full_experiments["auth_methods"][auth_method] = evaluate_dataset(
+                path, auth_method, make_consistent, m
+            )
+
+    consistent_experiments = dataset_config.get("Consistent subset")
+    if consistent_experiments:
+        make_consistent = True
+        auth_methods = consistent_experiments["auth_methods"]
+        print("\n===========================================")
+        print(
+            f"Analysing {name} using the {m} method with make_consistent={make_consistent}."
+        )
+        for auth_method in auth_methods:
+            consistent_experiments["auth_methods"][auth_method] = evaluate_dataset(
+                path, auth_method, make_consistent, m
+            )
+
+    return dataset_config

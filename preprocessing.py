@@ -174,7 +174,7 @@ def load_GTD():
         df["nhostkid"] = df["nhostkid"].replace(-99, np.nan)
         df["ransom"] = df["ransom"].replace(-9, np.nan)
         df.dropna(subset=[target], inplace=True)
-        df = df.sample(n=min(6000, len(df)), random_state=42)
+        # df = df.sample(n=min(6000, len(df)), random_state=42)
 
         for cat_col in categorical_features:
             if cat_col in df.columns:

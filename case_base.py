@@ -141,7 +141,6 @@ class CaseBase(list):
         verb=False,
         method="pearson",
         auth_method="default",
-        size=-1,
     ):
         """
         Inputs.
@@ -172,8 +171,6 @@ class CaseBase(list):
                 A string indicating the desired method of determining the dimension orders,
                 possible values are 'logreg' for logistic regression and 'pearson' for the
                 Pearson correlation method.
-            size:
-                Limits the size to the specified integer, if possible.
 
         Attributes.
             df: The dataframe holding the csv.
@@ -225,9 +222,11 @@ class CaseBase(list):
             # Determine orders of ordinal features using the coeffs dict.
             self.D.update(
                 {
-                    c: Dimension(c, operator.le)
-                    if coeffs[c] > 0
-                    else Dimension(c, operator.ge)
+                    c: (
+                        Dimension(c, operator.le)
+                        if coeffs[c] > 0
+                        else Dimension(c, operator.ge)
+                    )
                     for c in ordcs
                 }
             )
@@ -276,16 +275,12 @@ class CaseBase(list):
             for i, r in df.iterrows()
         ]
 
-        # Reduce the size to the desired number, if set.
-        if size != -1:
-            cases = cases[:size]
-
         # Call the list init function to load the cases into the CB.
         super(CaseBase, self).__init__(cases)
         self.calculate_alphas()
 
     def calculate_alphas(self):
-        if self.auth_method is not "Default":
+        if self.auth_method != "default":
             for c in self:
                 if self.auth_method == "relative":
                     c.set_alpha(relative_authoritativeness(c, self))

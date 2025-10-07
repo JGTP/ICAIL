@@ -100,7 +100,6 @@ def get_best_precedents(f, CB):
     for c in comparisons:
         c["trivial"], c["requires_empty"] = determine_trivial_or_requires_empty(c)
 
-    # Use set operations more efficiently
     bested = set()
     use_alpha = CB.auth_method != "default"
 

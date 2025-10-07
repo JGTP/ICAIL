@@ -29,30 +29,44 @@ def output_local(name, latex, df):
 
 def evaluate_metrics(exp_dict):
     for name in exp_dict:
-        exp_dict = authoritativeness.experiment(exp_dict)
+        print(f"\n{'='*50}")
+        print(f"Processing dataset: {name}")
+        print(f"{'='*50}")
+
+        # Process this single dataset
+        dataset_results = authoritativeness.experiment_single_dataset(
+            name, exp_dict[name]
+        )
+
+        # Generate output immediately
         df_results = pd.DataFrame()
         latex_results = f"\\multicolumn{{1}}{{l|}}{{{name}}} "
-        set = exp_dict[name].get("Full dataset")
-        for auth_method in set["auth_methods"]:
-            latex_results += "&"
-            mu = set["auth_methods"][auth_method].get("mean")
-            mu_n = set["auth_methods"][auth_method].get("mean_nontrivial")
-            Ninc = set["auth_methods"][auth_method]["Inconsistent forcings"]
-            Ndel = set["auth_methods"][auth_method].get("N_del", 0)
-            latex_cell = generate_table_cell(mu, mu_n, Ninc, Ndel)
-            latex_results += latex_cell
-            if auth_method.startswith("harmonic"):
-                beta = float(auth_method.split("_")[1])
-                data = {
-                    "beta": [beta],
-                    "mu": [mu],
-                    "mu_n": [mu_n],
-                    "Ninc": [Ninc],
-                    "Ndel": [Ndel],
-                }
-                df_results = df_results.append(pd.DataFrame(data).set_index("beta"))
-        latex_results += " \\\\\\cline{2-5}"
+
+        set = dataset_results.get("Full dataset")
+        if set:
+            for auth_method in set["auth_methods"]:
+                latex_results += "&"
+                mu = set["auth_methods"][auth_method].get("mean")
+                mu_n = set["auth_methods"][auth_method].get("mean_nontrivial")
+                Ninc = set["auth_methods"][auth_method]["Inconsistent forcings"]
+                Ndel = set["auth_methods"][auth_method].get("N_del", 0)
+                latex_cell = generate_table_cell(mu, mu_n, Ninc, Ndel)
+                latex_results += latex_cell
+                if auth_method.startswith("harmonic"):
+                    beta = float(auth_method.split("_")[1])
+                    data = {
+                        "beta": [beta],
+                        "mu": [mu],
+                        "mu_n": [mu_n],
+                        "Ninc": [Ninc],
+                        "Ndel": [Ndel],
+                    }
+                    df_results = df_results.append(pd.DataFrame(data).set_index("beta"))
+            latex_results += " \\\\\\cline{2-5}"
+
+        # Write output immediately
         output_local(name, latex_results, df_results)
+        print(f"✓ Results written for {name}")
 
 
 def Q_evaluation(name):
