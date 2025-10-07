@@ -13,7 +13,7 @@ def get_data(dataset_name):
         df = load_fraud()
     elif dataset_name == "COMPAS":
         df = load_COMPAS()
-    elif dataset_name == "GTD":
+    elif dataset_name == "gtd":
         df = load_GTD()
     else:
         raise ValueError("Unknown dataset")
@@ -159,7 +159,7 @@ def load_GTD():
     Note: Only includes incidents from 1998 onwards (iyear > 1997)
     """
     raw_path = "data/raw_data/gtd.xlsx"
-    prepared_path = "data/GTD.csv"
+    prepared_path = "data/gtd.csv"
 
     numerical_features = ["nkill", "nwound", "nhostkid"]
     categorical_features = ["attacktype1", "weaptype1", "targtype1", "ransom"]

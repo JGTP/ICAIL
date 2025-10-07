@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 
 def determine_distribution(n_precedents):
@@ -9,23 +10,60 @@ def determine_distribution(n_precedents):
     return mean, std
 
 
-def get_precedent_distribution(CB):
+def _process_single_case(case, CB):
+    """Process a single case to get precedent statistics."""
+    best_precedents = get_best_precedents(case, CB)
+    n_prec = len(best_precedents)
+
+    # Determine if non-trivial
+    is_nontrivial = not has_trivial_winning_strategy(best_precedents)
+
+    # Count strategy types
+    strategy_counts = {"all": 0, "some": 0, "none": 0, "trivial": 0}
+    if not has_trivial_winning_strategy(best_precedents):
+        n_empties = sum(1 for p in best_precedents if p["requires_empty"])
+        if n_empties == 0:
+            strategy_counts["none"] = 1
+        elif n_empties == len(best_precedents):
+            strategy_counts["all"] = 1
+        else:
+            strategy_counts["some"] = 1
+    else:
+        strategy_counts["trivial"] = 1
+
+    return n_prec, is_nontrivial, strategy_counts
+
+
+def get_precedent_distribution(CB, n_jobs=-1):
+    """
+    Compute precedent distribution with optional parallel processing.
+
+    Args:
+        CB: Case base
+        n_jobs: Number of parallel jobs (-1 = use all cores, 1 = no parallelisation)
+    """
+    # Process all cases in parallel
+    case_results = Parallel(n_jobs=n_jobs, backend="loky")(
+        delayed(_process_single_case)(case, CB)
+        for case in tqdm(CB, desc="Computing precedent distribution")
+    )
+
+    # Aggregate results
     n_precedents = []
-    n_precedents_nontrivial = []  # Add this
+    n_precedents_nontrivial = []
     results = {"all": 0, "some": 0, "none": 0, "trivial": 0}
-    for case in tqdm(CB):
-        best_precedents = get_best_precedents(case, CB)
-        n_precedents.append(len(best_precedents))
 
-        # Track non-trivial cases separately
-        if not has_trivial_winning_strategy(best_precedents):
-            n_precedents_nontrivial.append(len(best_precedents))
+    for n_prec, is_nontrivial, strategy_counts in case_results:
+        n_precedents.append(n_prec)
+        if is_nontrivial:
+            n_precedents_nontrivial.append(n_prec)
 
-        results = determine_strategy_counts(results, best_precedents)
+        for key in strategy_counts:
+            results[key] += strategy_counts[key]
 
+    # Compute statistics
     results["mean"], results["std"] = determine_distribution(n_precedents)
 
-    # Calculate mean for non-trivial cases
     if n_precedents_nontrivial:
         results["mean_nontrivial"], _ = determine_distribution(n_precedents_nontrivial)
     else:
@@ -55,14 +93,32 @@ def has_trivial_winning_strategy(best_precedents):
 
 def get_best_precedents(f, CB):
     comparisons = get_comparisons(f, CB)
-    bested = set()
+    if not comparisons:
+        return []
+
+    # Pre-compute trivial/requires_empty for all comparisons
     for c in comparisons:
         c["trivial"], c["requires_empty"] = determine_trivial_or_requires_empty(c)
-        if c["name"] not in bested:
-            if CB.auth_method == "default":
-                bested = inner_loop_naive(comparisons, c, bested)
-            else:
-                bested = inner_loop_alpha(comparisons, c, bested)
+
+    # Use set operations more efficiently
+    bested = set()
+    use_alpha = CB.auth_method != "default"
+
+    for c in comparisons:
+        if c["name"] in bested:
+            continue
+
+        c_diffs = c["rel_differences"]
+        for oc in comparisons:
+            if oc["name"] == c["name"] or oc["name"] in bested:
+                continue
+
+            # Check if c is worse than oc
+            if c_diffs > oc["rel_differences"]:
+                if not use_alpha or c["alpha"] <= oc["alpha"]:
+                    bested.add(c["name"])
+                    break  # Early termination - c is already bested
+
     return [c for c in comparisons if c["name"] not in bested]
 
 

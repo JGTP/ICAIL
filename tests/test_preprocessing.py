@@ -93,3 +93,8 @@ def test_COMPAS():
     assert df.iloc[0]["jailtime"] == 1
     assert df.iloc[0]["Label"] == 0
     assert len(df) == 10577
+
+
+def test_gtd():
+    df = preprocessing.get_data("gtd")
+    assert len(df) > 10
