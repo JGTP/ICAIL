@@ -1,8 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
 from classifier import kfold_random_forest
-from config import config_dict
 from experiments import authoritativeness
 from preprocessing import get_data
 
@@ -69,31 +67,67 @@ def evaluate_metrics(exp_dict):
         print(f"✓ Results written for {name}")
 
 
-def Q_evaluation(name):
-    labelled_data = get_data(name)
-    Q_total, metrics, CB_results = get_Q_with_preds(labelled_data)
-    df_results = grow_Q(Q_total.head(1000))
-    print("Found classifier with the following performance metrics: ", metrics)
-    print("CB results: ", CB_results)
-    output_local("Q_" + name, "", df_results)
-
-
-def grow_Q(Q_total):
+def grow_Q(Q_total, auth_method="default"):
     Q = pd.DataFrame()
     df_results = pd.DataFrame()
     for _, row in Q_total.iterrows():
         Q = Q.append(row)
-        results = authoritativeness.evaluate_dataset("", auth_method="default", df=Q)
-        mu = results.get("mean")
-        Ninc = results.get("Inconsistent forcings")
-        data = {"|Q|": [len(Q)], "mu": [mu], "Ninc": [Ninc]}
+        results = authoritativeness.evaluate_dataset("", auth_method=auth_method, df=Q)
+
+        n_n = results.get("all", 0) + results.get("some", 0) + results.get("none", 0)
+
+        data = {
+            "|Q|": [len(Q)],
+            "mu": [results.get("mean")],
+            "mu_n": [results.get("mean_nontrivial")],
+            "Ninc": [results.get("Inconsistent forcings")],
+            "Ndel": [results.get("N_del", 0)],
+            "Ntws": [results.get("trivial", 0)],
+            "Nn": [n_n],
+        }
         df_results = df_results.append(pd.DataFrame(data).set_index("|Q|"))
     return df_results
+
+
+def Q_evaluation(name):
+    labelled_data = get_data(name)
+    Q_total, metrics, CB_results = get_Q_with_preds(labelled_data)
+
+    df_default = grow_Q(Q_total.head(1000), auth_method="default")
+    df_harmonic = grow_Q(Q_total.head(1000), auth_method="harmonic_1")
+
+    print("Found classifier with the following performance metrics: ", metrics)
+    print("CB results: ", CB_results)
+
+    output_local(f"Q_{name}_default", "", df_default)
+    output_local(f"Q_{name}_harmonic", "", df_harmonic)
 
 
 def get_Q_with_preds(data):
     X = data.iloc[:, 0:-1]
     y = data.iloc[:, -1]
+    X = pd.get_dummies(
+        X,
+        columns=[
+            "gender",
+            "Partner",
+            "Dependents",
+            "tenure",
+            "PhoneService",
+            "MultipleLines",
+            "InternetService",
+            "OnlineSecurity",
+            "OnlineBackup",
+            "DeviceProtection",
+            "TechSupport",
+            "StreamingTV",
+            "StreamingMovies",
+            "Contract",
+            "PaperlessBilling",
+            "PaymentMethod",
+        ],
+        drop_first=True,
+    )
     X, Q, y, _ = train_test_split(X, y, test_size=0.3, random_state=0)
     clf, metrics = kfold_random_forest(X, y)
     predicted_labels = clf.predict(Q)
@@ -104,5 +138,5 @@ def get_Q_with_preds(data):
 
 
 if __name__ == "__main__":
-    # Q_evaluation("admission")
-    evaluate_metrics(config_dict)
+    # evaluate_metrics(config_dict)
+    Q_evaluation("churn")
