@@ -64,7 +64,7 @@ def evaluate_metrics(exp_dict):
 
         # Write output immediately
         output_local(name, latex_results, df_results)
-        print(f"✓ Results written for {name}")
+        print(f"? Results written for {name}")
 
 
 def grow_Q(Q_total, auth_method="default"):
@@ -91,49 +91,46 @@ def grow_Q(Q_total, auth_method="default"):
 
 def Q_evaluation(name):
     labelled_data = get_data(name)
-    Q_total, metrics, CB_results = get_Q_with_preds(labelled_data)
 
-    df_default = grow_Q(Q_total.head(1000), auth_method="default")
-    df_harmonic = grow_Q(Q_total.head(1000), auth_method="harmonic_1")
-
-    print("Found classifier with the following performance metrics: ", metrics)
-    print("CB results: ", CB_results)
-
-    output_local(f"Q_{name}_default", "", df_default)
-    output_local(f"Q_{name}_harmonic", "", df_harmonic)
+    for auth_method in ["default", "harmonic_1"]:
+        Q_total, metrics, CB_results = get_Q_with_preds(labelled_data, auth_method)
+        df = grow_Q(Q_total, auth_method=auth_method)
+        print("Found classifier with the following performance metrics: ", metrics)
+        print("CB results: ", CB_results)
+        output_local(f"Q_{name}_{auth_method}", "", df)
 
 
-def get_Q_with_preds(data):
+def get_Q_with_preds(data, auth_method):
     X = data.iloc[:, 0:-1]
     y = data.iloc[:, -1]
-    X = pd.get_dummies(
-        X,
-        columns=[
-            "gender",
-            "Partner",
-            "Dependents",
-            "tenure",
-            "PhoneService",
-            "MultipleLines",
-            "InternetService",
-            "OnlineSecurity",
-            "OnlineBackup",
-            "DeviceProtection",
-            "TechSupport",
-            "StreamingTV",
-            "StreamingMovies",
-            "Contract",
-            "PaperlessBilling",
-            "PaymentMethod",
-        ],
-        drop_first=True,
-    )
-    X, Q, y, _ = train_test_split(X, y, test_size=0.3, random_state=0)
+    # X = pd.get_dummies(
+    #     X,
+    #     columns=[
+    #         "gender",
+    #         "Partner",
+    #         "Dependents",
+    #         "tenure",
+    #         "PhoneService",
+    #         "MultipleLines",
+    #         "InternetService",
+    #         "OnlineSecurity",
+    #         "OnlineBackup",
+    #         "DeviceProtection",
+    #         "TechSupport",
+    #         "StreamingTV",
+    #         "StreamingMovies",
+    #         "Contract",
+    #         "PaperlessBilling",
+    #         "PaymentMethod",
+    #     ],
+    #     drop_first=True,
+    # )
+    X, Q, y, _ = train_test_split(X, y, test_size=0.5, random_state=0)
     clf, metrics = kfold_random_forest(X, y)
     predicted_labels = clf.predict(Q)
     Q["Label"] = predicted_labels
     X["Label"] = y
-    CB_results = authoritativeness.evaluate_dataset("", auth_method="default", df=X)
+    CB_results = authoritativeness.evaluate_dataset("", auth_method=auth_method, df=X)
     return Q, metrics, CB_results
 
 
