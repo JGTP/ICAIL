@@ -76,16 +76,14 @@ def grow_Q(Q_total, auth_method="default", percentage=5):
             results = authoritativeness.evaluate_dataset(
                 "", auth_method=auth_method, df=Q
             )
-            n_n = (
-                results.get("all", 0) + results.get("some", 0) + results.get("none", 0)
-            )
+            n_n = results.get("all") + results.get("some") + results.get("none")
             data = {
                 "|Q|": [len(Q)],
                 "mu": [results.get("mean")],
                 "mu_n": [results.get("mean_nontrivial")],
                 "Ninc": [results.get("Inconsistent forcings")],
-                "Ndel": [results.get("N_del", 0)],
-                "Ntws": [results.get("trivial", 0)],
+                "Ndel": [results.get("N_del")],
+                "Ntws": [results.get("trivial")],
                 "Nn": [n_n],
             }
             df_results = df_results.append(pd.DataFrame(data).set_index("|Q|"))
@@ -104,7 +102,7 @@ def Q_evaluation(name):
 def get_Q_with_preds(data, auth_method):
     X = data.iloc[:, 0:-1]
     y = data.iloc[:, -1]
-    X, Q, y, _ = train_test_split(X, y, test_size=0.5)
+    X, Q, y, _ = train_test_split(X, y, test_size=0.5, stratify=y)
     clf, metrics = kfold_random_forest(X, y)
     predicted_labels = clf.predict(Q)
     Q["Label"] = predicted_labels
@@ -117,5 +115,5 @@ if __name__ == "__main__":
     # evaluate_metrics(config_dict)
 
     Q_evaluation("admission")
-    # Q_evaluation("churn")
-    # Q_evaluation("gtd")
+    Q_evaluation("churn")
+    Q_evaluation("gtd")
