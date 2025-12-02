@@ -80,6 +80,27 @@ def load_churn():
         df["TotalCharges"] = df["TotalCharges"].astype(float)
         df["Churn"] = np.where(df["Churn"] == "Yes", 1, 0)
         df.rename(columns={"Churn": "Label"}, inplace=True)
+        df = pd.get_dummies(
+            df,
+            columns=[
+                "gender",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity",
+                "OnlineBackup",
+                "DeviceProtection",
+                "TechSupport",
+                "StreamingTV",
+                "StreamingMovies",
+                "Contract",
+                "PaperlessBilling",
+                "PaymentMethod",
+            ],
+            drop_first=True,
+        )
         df.to_csv(prepared_path, index=False)
     else:
         df = pd.read_csv(prepared_path)

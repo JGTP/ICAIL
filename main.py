@@ -13,23 +13,19 @@ def generate_table_cell(mean, mean_nontrivial, n_inconsistent_forcings, n_del):
     return f"\\multicolumn{{1}}{{l|}}{{\\begin{{tabular}}[c]{{@{{}}l@{{}}}}$\\mu={mean}$\\\\ $\\mu_n={mean_nt}$\\\\ $N_{{inc}}={n_inconsistent_forcings}$\\\\ $N_{{del}}={n_del}$\\end{{tabular}}}}"
 
 
-def output_local(name, latex, df):
+def output_local(name, metrics, df):
     import os
 
     if not os.path.exists("results"):
         os.makedirs("results")
     with open(f"results/{name}.txt", "w") as f:
-        print(f"Writing results for {name}.")
-        f.write(latex)
+        f.write(metrics)
     if len(df) > 2:
         df.to_csv(f"results/{name}.csv", sep=";")
 
 
 def evaluate_metrics(exp_dict):
     for name in exp_dict:
-        print(f"\n{'='*50}")
-        print(f"Processing dataset: {name}")
-        print(f"{'='*50}")
 
         # Process this single dataset
         dataset_results = authoritativeness.experiment_single_dataset(
@@ -64,68 +60,51 @@ def evaluate_metrics(exp_dict):
 
         # Write output immediately
         output_local(name, latex_results, df_results)
-        print(f"? Results written for {name}")
 
 
-def grow_Q(Q_total, auth_method="default"):
+def grow_Q(Q_total, auth_method="default", percentage=5):
     Q = pd.DataFrame()
     df_results = pd.DataFrame()
-    for _, row in Q_total.iterrows():
+    total_size = len(Q_total)
+    interval = max(
+        1, int(total_size * percentage / 100)
+    )  # Calculate interval from percentage
+
+    for i, (_, row) in enumerate(Q_total.iterrows(), 1):
         Q = Q.append(row)
-        results = authoritativeness.evaluate_dataset("", auth_method=auth_method, df=Q)
-
-        n_n = results.get("all", 0) + results.get("some", 0) + results.get("none", 0)
-
-        data = {
-            "|Q|": [len(Q)],
-            "mu": [results.get("mean")],
-            "mu_n": [results.get("mean_nontrivial")],
-            "Ninc": [results.get("Inconsistent forcings")],
-            "Ndel": [results.get("N_del", 0)],
-            "Ntws": [results.get("trivial", 0)],
-            "Nn": [n_n],
-        }
-        df_results = df_results.append(pd.DataFrame(data).set_index("|Q|"))
+        if i % interval == 0 or i == total_size:  # Evaluate at intervals or at the end
+            results = authoritativeness.evaluate_dataset(
+                "", auth_method=auth_method, df=Q
+            )
+            n_n = (
+                results.get("all", 0) + results.get("some", 0) + results.get("none", 0)
+            )
+            data = {
+                "|Q|": [len(Q)],
+                "mu": [results.get("mean")],
+                "mu_n": [results.get("mean_nontrivial")],
+                "Ninc": [results.get("Inconsistent forcings")],
+                "Ndel": [results.get("N_del", 0)],
+                "Ntws": [results.get("trivial", 0)],
+                "Nn": [n_n],
+            }
+            df_results = df_results.append(pd.DataFrame(data).set_index("|Q|"))
     return df_results
 
 
 def Q_evaluation(name):
     labelled_data = get_data(name)
-
-    for auth_method in ["default", "harmonic_1"]:
-        Q_total, metrics, CB_results = get_Q_with_preds(labelled_data, auth_method)
-        df = grow_Q(Q_total, auth_method=auth_method)
-        print("Found classifier with the following performance metrics: ", metrics)
-        print("CB results: ", CB_results)
-        output_local(f"Q_{name}_{auth_method}", "", df)
+    for i in range(3):
+        for auth_method in ["default", "harmonic_1"]:
+            Q_total, metrics, CB_results = get_Q_with_preds(labelled_data, auth_method)
+            df = grow_Q(Q_total, auth_method=auth_method)
+            output_local(f"Q_{name}_{auth_method}_{i}", str(metrics | CB_results), df)
 
 
 def get_Q_with_preds(data, auth_method):
     X = data.iloc[:, 0:-1]
     y = data.iloc[:, -1]
-    # X = pd.get_dummies(
-    #     X,
-    #     columns=[
-    #         "gender",
-    #         "Partner",
-    #         "Dependents",
-    #         "tenure",
-    #         "PhoneService",
-    #         "MultipleLines",
-    #         "InternetService",
-    #         "OnlineSecurity",
-    #         "OnlineBackup",
-    #         "DeviceProtection",
-    #         "TechSupport",
-    #         "StreamingTV",
-    #         "StreamingMovies",
-    #         "Contract",
-    #         "PaperlessBilling",
-    #         "PaymentMethod",
-    #     ],
-    #     drop_first=True,
-    # )
-    X, Q, y, _ = train_test_split(X, y, test_size=0.5, random_state=0)
+    X, Q, y, _ = train_test_split(X, y, test_size=0.5)
     clf, metrics = kfold_random_forest(X, y)
     predicted_labels = clf.predict(Q)
     Q["Label"] = predicted_labels
@@ -136,4 +115,7 @@ def get_Q_with_preds(data, auth_method):
 
 if __name__ == "__main__":
     # evaluate_metrics(config_dict)
-    Q_evaluation("churn")
+
+    Q_evaluation("admission")
+    # Q_evaluation("churn")
+    # Q_evaluation("gtd")

@@ -23,31 +23,7 @@ def test_admission():
 
 def test_churn():
     df = preprocessing.get_data("churn")
-    assert df.columns.__len__() == 20
-    for c in df.columns:
-        assert c in [
-            "gender",
-            "SeniorCitizen",
-            "Partner",
-            "Dependents",
-            "tenure",
-            "PhoneService",
-            "MultipleLines",
-            "InternetService",
-            "OnlineSecurity",
-            "OnlineBackup",
-            "DeviceProtection",
-            "TechSupport",
-            "StreamingTV",
-            "StreamingMovies",
-            "Contract",
-            "PaperlessBilling",
-            "PaymentMethod",
-            "MonthlyCharges",
-            "TotalCharges",
-            "Label",
-        ]
-    assert df.iloc[0]["gender"] == "Female"
+    assert df.iloc[0]["gender_Male"] == False
     assert df.iloc[0]["TotalCharges"] == 29.85
     assert df.iloc[0]["Label"] == 0
     assert len(df) == 7032
